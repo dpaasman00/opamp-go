@@ -225,6 +225,10 @@ func (m *MockServer) handleReceivedBytes(msgBytes []byte, alwaysRespond bool) []
 		t := time.NewTimer(5 * time.Second)
 		select {
 		case h := <-m.expectedHandlers:
+			if h == nil {
+				// expectedHandlers was closed: the server is shutting down.
+				return nil
+			}
 			defer func() { m.expectedComplete <- struct{}{} }()
 			response = h(&request)
 		case <-t.C:
