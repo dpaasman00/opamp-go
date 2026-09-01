@@ -223,9 +223,10 @@ func (m *MockServer) handleReceivedBytes(msgBytes []byte, alwaysRespond bool) []
 		// so we wait for the user-defined handler to provided in the expectedHandlers
 		// channel.
 		t := time.NewTimer(5 * time.Second)
+		defer t.Stop()
 		select {
-		case h := <-m.expectedHandlers:
-			if h == nil {
+		case h, ok := <-m.expectedHandlers:
+			if !ok {
 				// expectedHandlers was closed: the server is shutting down.
 				return nil
 			}
