@@ -58,7 +58,8 @@ type StartSettings struct {
 	// header (e.g. "ws://localhost/v1/opamp" or "http://localhost/v1/opamp").
 	// For the HTTP transport, Client.Transport must be an *http.Transport (or
 	// nil) so the dialer can be applied; Start() returns an error otherwise.
-	// Setting both DialContext and ProxyURL is not supported.
+	// Setting both DialContext and ProxyURL is not supported; Start() returns
+	// an error if both are set.
 	DialContext func(ctx context.Context, network, addr string) (net.Conn, error)
 
 	// Optional Proxy configuration

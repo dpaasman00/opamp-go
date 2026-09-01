@@ -1,3 +1,5 @@
+//go:build !windows
+
 package client
 
 import (
@@ -12,6 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/open-telemetry/opamp-go/client/internal"
 	"github.com/open-telemetry/opamp-go/client/types"
 	"github.com/open-telemetry/opamp-go/protobufs"
 	"github.com/open-telemetry/opamp-go/server"
@@ -140,4 +143,20 @@ func TestHTTPClientDialContextRejectsCustomTransport(t *testing.T) {
 	}
 	prepareClient(t, &settings, client)
 	require.Error(t, client.Start(context.Background(), settings))
+}
+
+// TestDialContextRejectsProxy verifies Start fails when both DialContext and
+// ProxyURL are set, since DialContext replaces the dialing proxying relies on.
+func TestDialContextRejectsProxy(t *testing.T) {
+	testClients(t, func(t *testing.T, client OpAMPClient) {
+		settings := types.StartSettings{
+			OpAMPServerURL: "ws://localhost/v1/opamp",
+			ProxyURL:       "http://localhost:3128",
+			DialContext: func(ctx context.Context, _, _ string) (net.Conn, error) {
+				return nil, nil
+			},
+		}
+		prepareClient(t, &settings, client)
+		require.ErrorIs(t, client.Start(context.Background(), settings), internal.ErrDialContextAndProxyURL)
+	})
 }
